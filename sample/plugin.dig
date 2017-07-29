@@ -1,0 +1,15 @@
+_export:
+  plugin:
+    repositories:
+      #- file://${repos}
+      #- file:///home/hiro/OpenProjects/digdag/digdag-operator-ssh/build/repo
+      - file:///home/hiro/OpenProjects/digdag/digdag-plugin-ssh/build/repo
+      # - https://jitpack.io
+    dependencies:
+      #- io.digdag.plugin:digdag-operator-ssh:0.1.0
+      - io.digdag.plugin:digdag-plugin-ssh:0.1.0
+      # - com.github.myui:digdag-plugin-example:v0.1.3
+
++step1:
+  ssh>: ls
+  host: localhost
