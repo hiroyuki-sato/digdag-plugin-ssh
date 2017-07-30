@@ -12,6 +12,7 @@ import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.connection.ConnectionException;
 import net.schmizz.sshj.connection.channel.direct.Session;
 import net.schmizz.sshj.transport.TransportException;
+import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 import net.schmizz.sshj.userauth.UserAuthException;
 
 import java.io.IOException;
@@ -48,6 +49,9 @@ public class SshOperatorFactory implements OperatorFactory {
             String host = params.get("host",String.class);
 
             try {
+                ssh.addHostKeyVerifier("50:be:e8:2d:cd:1b:65:38:c0:f7:59:9f:53:e4:54:bd");
+                ssh.loadKnownHosts();
+                ssh.addHostKeyVerifier(new PromiscuousVerifier());
                 ssh.connect(host);
             } catch (IOException ex) {
                 throw Throwables.propagate(ex);
