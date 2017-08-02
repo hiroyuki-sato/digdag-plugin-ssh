@@ -63,13 +63,16 @@ public class SshOperatorFactory
 
             String command = params.get("_command", String.class);
             String host = params.get("host", String.class);
+            int port = params.get("port",int.class,22);
             String keyPath = params.get("key_path", String.class);
             String user = params.get("user", String.class, System.getProperty("user.name"));
 
             try {
                 ssh.addHostKeyVerifier(new PromiscuousVerifier());
                 ssh.loadKnownHosts();
-                ssh.connect(host);
+
+                logger.info(String.format("connecting %s@%s:%d",user,host,port));
+                ssh.connect(host,port);
 //                ssh.authPassword("user", "xxxxx");
 
                 try {
