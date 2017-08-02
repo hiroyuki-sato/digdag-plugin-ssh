@@ -9,72 +9,100 @@ import io.digdag.spi.TaskResult;
 import io.digdag.spi.TemplateEngine;
 import io.digdag.util.BaseOperator;
 import net.schmizz.sshj.SSHClient;
+import net.schmizz.sshj.common.IOUtils;
 import net.schmizz.sshj.connection.ConnectionException;
 import net.schmizz.sshj.connection.channel.direct.Session;
 import net.schmizz.sshj.transport.TransportException;
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 import net.schmizz.sshj.userauth.UserAuthException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
-public class SshOperatorFactory implements OperatorFactory {
+public class SshOperatorFactory
+        implements OperatorFactory
+{
     @SuppressWarnings("unused")
     private final TemplateEngine templateEngine;
 
-    public SshOperatorFactory(TemplateEngine templateEngine) {
+    private static Logger logger = LoggerFactory.getLogger(SshOperatorFactory.class);
+
+    public SshOperatorFactory(TemplateEngine templateEngine)
+    {
         this.templateEngine = templateEngine;
     }
 
-    public String getType() {
+    public String getType()
+    {
         return "ssh";
     }
 
     final SSHClient ssh = new SSHClient();
+
     @Override
-    public Operator newOperator(OperatorContext context) {
+    public Operator newOperator(OperatorContext context)
+    {
         return new SshOperator(context);
     }
 
-    private class SshOperator extends BaseOperator {
-        public SshOperator(OperatorContext context) {
+    private class SshOperator
+            extends BaseOperator
+    {
+        public SshOperator(OperatorContext context)
+        {
             super(context);
         }
 
         @Override
-        public TaskResult runTask() {
+        public TaskResult runTask()
+        {
             Config params = request.getConfig().mergeDefault(
-                request.getConfig().getNestedOrGetEmpty("ssh"));
+                    request.getConfig().getNestedOrGetEmpty("ssh"));
 
-            String command = params.get("_command",String.class);
-            String host = params.get("host",String.class);
+            String command = params.get("_command", String.class);
+            String host = params.get("host", String.class);
+            String keyPath = params.get("key_path", String.class);
+            String user = params.get("user", String.class, System.getProperty("user.name"));
 
             try {
-                ssh.addHostKeyVerifier("50:be:e8:2d:cd:1b:65:38:c0:f7:59:9f:53:e4:54:bd");
-                ssh.loadKnownHosts();
                 ssh.addHostKeyVerifier(new PromiscuousVerifier());
+                ssh.loadKnownHosts();
                 ssh.connect(host);
-            } catch (IOException ex) {
-                throw Throwables.propagate(ex);
-            }
+//                ssh.authPassword("user", "xxxxx");
 
-            try {
-                ssh.authPublickey(System.getProperty("user.name"));
-                final Session session = ssh.startSession();
-                final Session.Command result = session.exec(command);
+                try {
+                    logger.info(String.format("user = %s, key_path: %s", user, keyPath));
+                    ssh.authPublickey(user, keyPath);
+                    final Session session = ssh.startSession();
 
+                    logger.info("Execute: " + command);
+                    final Session.Command result = session.exec(command);
+                    result.join(10, TimeUnit.SECONDS);
+
+                    System.out.println("result" + result);
+                    int status = result.getExitStatus();
+                    logger.info("Result: " + IOUtils.readFully(result.getInputStream()).toString());
+                    logger.info("Status: " + status);
+                    if (status != 0) {
+                        throw new RuntimeException("Command failed with code " + status);
+                    }
+                }
+                catch (UserAuthException | TransportException | ConnectionException ex) {
+                    ex.printStackTrace();
+                    throw Throwables.propagate(ex);
+                }
+                finally {
+                    ssh.close();
+                }
+                ssh.disconnect();
             }
-            catch (UserAuthException ex) {
+            catch (IOException ex) {
                 throw Throwables.propagate(ex);
-            }
-            catch (ConnectionException ex) {
-                throw Throwables.propagate(ex);
-            }
-            catch (TransportException ex) {
-                ex.printStackTrace();
             }
 
             return TaskResult.empty(request);
         }
     }
-
 }
