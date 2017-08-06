@@ -1,10 +1,13 @@
 package io.digdag.plugin.ssh;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import io.digdag.client.config.Config;
+import io.digdag.client.config.ConfigException;
 import io.digdag.spi.Operator;
 import io.digdag.spi.OperatorContext;
 import io.digdag.spi.OperatorFactory;
+import io.digdag.spi.SecretProvider;
 import io.digdag.spi.TaskResult;
 import io.digdag.spi.TemplateEngine;
 import io.digdag.util.BaseOperator;
@@ -63,22 +66,20 @@ public class SshOperatorFactory
 
             String command = params.get("_command", String.class);
             String host = params.get("host", String.class);
-            int port = params.get("port",int.class,22);
-            String keyPath = params.get("key_path", String.class);
+            int port = params.get("port", int.class, 22);
             String user = params.get("user", String.class, System.getProperty("user.name"));
 
             try {
-                ssh.addHostKeyVerifier(new PromiscuousVerifier());
-                ssh.loadKnownHosts();
+                setupKnownKey();
 
-                logger.info(String.format("connecting %s@%s:%d",user,host,port));
-                ssh.connect(host,port);
-//                ssh.authPassword("user", "xxxxx");
+                logger.info(String.format("connecting %s@%s:%d", user, host, port));
+                ssh.connect(host, port);
 
                 try {
-                    logger.info(String.format("user = %s, key_path: %s", user, keyPath));
-                    ssh.authPublickey(user, keyPath);
+
+                    authorize();
                     final Session session = ssh.startSession();
+
 
                     logger.info("Execute: " + command);
                     final Session.Command result = session.exec(command);
@@ -92,8 +93,7 @@ public class SshOperatorFactory
                         throw new RuntimeException("Command failed with code " + status);
                     }
                 }
-                catch (UserAuthException | TransportException | ConnectionException ex) {
-                    ex.printStackTrace();
+                catch (ConnectionException ex) {
                     throw Throwables.propagate(ex);
                 }
                 finally {
@@ -106,6 +106,55 @@ public class SshOperatorFactory
             }
 
             return TaskResult.empty(request);
+        }
+
+        private void authorize()
+        {
+            Config params = request.getConfig().mergeDefault(
+                    request.getConfig().getNestedOrGetEmpty("ssh"));
+
+            String user = params.get("user", String.class);
+            SecretProvider secret = context.getSecrets().getSecrets("ssh");
+
+            try {
+                if (params.get("password_auth", Boolean.class, false)) {
+                    Optional<String> password = secret.getSecretOptional("password");
+                    if (!password.isPresent()) {
+                        throw new RuntimeException("password not set");
+                    }
+                    ssh.authPassword(user, password.get());
+                }
+                else {
+                    Optional<String> publicKey = secret.getSecretOptional("public_key");
+                    Optional<String> publicKeyPass = secret.getSecretOptional("public_key_passphrase");
+                    if (!publicKey.isPresent()) {
+                        throw new RuntimeException("public_key not set");
+                    }
+                    if (publicKeyPass.isPresent()) {
+                        // TODO
+                        // ssh.authPublickey(user,publicKey.get());
+                        throw new ConfigException("public_key_passphrase doesn't support yet");
+                    }
+                    else {
+                        logger.info(publicKey.get());
+                        ssh.authPublickey(user, publicKey.get());
+                    }
+                }
+            }
+            catch (UserAuthException | TransportException ex) {
+                throw Throwables.propagate(ex);
+            }
+        }
+
+        private void setupKnownKey()
+        {
+            try {
+                ssh.addHostKeyVerifier(new PromiscuousVerifier());
+                ssh.loadKnownHosts();
+            }
+            catch (IOException ex) {
+                throw Throwables.propagate(ex);
+            }
         }
     }
 }

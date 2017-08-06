@@ -13,3 +13,6 @@ _export:
 +step1:
   ssh>: ls
   host: localhost
+#  port: 23
+  user: hsato
+#  public_key: /home/hiro/.ssh/id_rsa
