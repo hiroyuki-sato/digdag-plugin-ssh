@@ -18,6 +18,9 @@ import net.schmizz.sshj.connection.channel.direct.Session;
 import net.schmizz.sshj.transport.TransportException;
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 import net.schmizz.sshj.userauth.UserAuthException;
+import net.schmizz.sshj.userauth.keyprovider.BaseFileKeyProvider;
+import net.schmizz.sshj.userauth.keyprovider.KeyProviderUtil;
+import net.schmizz.sshj.userauth.keyprovider.OpenSSHKeyFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,6 +129,7 @@ public class SshOperatorFactory
                 }
                 else {
                     Optional<String> publicKey = secret.getSecretOptional("public_key");
+                    Optional<String> privateKey = secret.getSecretOptional("private_key");
                     Optional<String> publicKeyPass = secret.getSecretOptional("public_key_passphrase");
                     if (!publicKey.isPresent()) {
                         throw new RuntimeException("public_key not set");
@@ -135,10 +139,14 @@ public class SshOperatorFactory
                         // ssh.authPublickey(user,publicKey.get());
                         throw new ConfigException("public_key_passphrase doesn't support yet");
                     }
-                    else {
-                        logger.info(publicKey.get());
-                        ssh.authPublickey(user, publicKey.get());
+                    if(!privateKey.isPresent()){
+                        throw new ConfigException("private key not set");
                     }
+
+                    OpenSSHKeyFile keyfile = new OpenSSHKeyFile();
+
+                    keyfile.init(privateKey.get(),publicKey.get());
+                    ssh.authPublickey(user,keyfile);
                 }
             }
             catch (UserAuthException | TransportException ex) {
@@ -156,5 +164,7 @@ public class SshOperatorFactory
                 throw Throwables.propagate(ex);
             }
         }
+
+
     }
 }
