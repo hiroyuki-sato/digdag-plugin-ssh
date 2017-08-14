@@ -70,12 +70,11 @@ public class SshOperatorFactory
             String command = params.get("_command", String.class);
             String host = params.get("host", String.class);
             int port = params.get("port", int.class, 22);
-            String user = params.get("user", String.class, System.getProperty("user.name"));
 
             try {
                 setupKnownKey();
 
-                logger.info(String.format("connecting %s@%s:%d", user, host, port));
+                logger.info(String.format("Connecting %s:%d", host, port));
                 ssh.connect(host, port);
 
                 try {
@@ -84,16 +83,16 @@ public class SshOperatorFactory
                     final Session session = ssh.startSession();
 
 
-                    logger.info("Execute: " + command);
+                    logger.info(String.format("Execute command: %s",command));
                     final Session.Command result = session.exec(command);
                     result.join(10, TimeUnit.SECONDS);
 
                     System.out.println("result" + result);
                     int status = result.getExitStatus();
-                    logger.info("Result: " + IOUtils.readFully(result.getInputStream()).toString());
+                    logger.debug("Result: " + IOUtils.readFully(result.getInputStream()).toString());
                     logger.info("Status: " + status);
                     if (status != 0) {
-                        throw new RuntimeException("Command failed with code " + status);
+                        throw new RuntimeException(String.format("Command failed with code %d",status));
                     }
                 }
                 catch (ConnectionException ex) {
@@ -125,6 +124,7 @@ public class SshOperatorFactory
                     if (!password.isPresent()) {
                         throw new RuntimeException("password not set");
                     }
+                    logger.info(String.format("Authenticate user %s with password",user));
                     ssh.authPassword(user, password.get());
                 }
                 else {
@@ -146,6 +146,7 @@ public class SshOperatorFactory
                     OpenSSHKeyFile keyfile = new OpenSSHKeyFile();
 
                     keyfile.init(privateKey.get(),publicKey.get());
+                    logger.info(String.format("Authenticate user %s with public key",user));
                     ssh.authPublickey(user,keyfile);
                 }
             }
