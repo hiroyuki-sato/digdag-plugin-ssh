@@ -1,4 +1,4 @@
-package io.digdag.plugin.ssh;
+package io.github.hiroyuki_sato.digdag.plugin;
 
 import io.digdag.spi.OperatorFactory;
 import io.digdag.spi.OperatorProvider;

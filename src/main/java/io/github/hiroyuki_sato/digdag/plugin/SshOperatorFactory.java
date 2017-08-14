@@ -1,4 +1,4 @@
-package io.digdag.plugin.ssh;
+package io.github.hiroyuki_sato.digdag.plugin;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
