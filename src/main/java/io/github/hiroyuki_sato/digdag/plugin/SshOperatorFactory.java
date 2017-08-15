@@ -61,6 +61,8 @@ public class SshOperatorFactory
             super(context);
         }
 
+        private final int defaultCommandTimeout = 60;
+
         @Override
         public TaskResult runTask()
         {
@@ -70,6 +72,7 @@ public class SshOperatorFactory
             String command = params.get("_command", String.class);
             String host = params.get("host", String.class);
             int port = params.get("port", int.class, 22);
+            int cmd_timeo = params.get("command_timeout", int.class, defaultCommandTimeout);
 
             try {
                 setupKnownKey();
