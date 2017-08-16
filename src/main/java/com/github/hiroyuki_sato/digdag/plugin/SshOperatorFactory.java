@@ -75,36 +75,39 @@ public class SshOperatorFactory
             int cmd_timeo = params.get("command_timeout", int.class, defaultCommandTimeout);
 
             try {
-                setupHostKeyVerifier();
-
-                logger.info(String.format("Connecting %s:%d", host, port));
-                ssh.connect(host, port);
-
                 try {
+                    setupHostKeyVerifier();
 
-                    authorize();
-                    final Session session = ssh.startSession();
+                    logger.info(String.format("Connecting %s:%d", host, port));
+                    ssh.connect(host, port);
 
-                    logger.info(String.format("Execute command: %s", command));
-                    final Session.Command result = session.exec(command);
-                    result.join(cmd_timeo, TimeUnit.SECONDS);
+                    try {
 
-                    int status = result.getExitStatus();
-                    logger.debug("Result: " + IOUtils.readFully(result.getInputStream()).toString());
-                    logger.info("Status: " + status);
-                    if (status != 0) {
-                        throw new RuntimeException(String.format("Command failed with code %d", status));
+                        authorize();
+                        final Session session = ssh.startSession();
+
+                        logger.info(String.format("Execute command: %s", command));
+                        final Session.Command result = session.exec(command);
+                        result.join(cmd_timeo, TimeUnit.SECONDS);
+
+                        int status = result.getExitStatus();
+                        logger.debug("Result: " + IOUtils.readFully(result.getInputStream()).toString());
+                        logger.info("Status: " + status);
+                        if (status != 0) {
+                            throw new RuntimeException(String.format("Command failed with code %d", status));
+                        }
+                    }
+                    catch (ConnectionException ex) {
+                        throw Throwables.propagate(ex);
+                    }
+                    finally {
+                        ssh.close();
                     }
                 }
-                catch (ConnectionException ex) {
-                    throw Throwables.propagate(ex);
-                }
                 finally {
-                    ssh.close();
+                    ssh.disconnect();
                 }
-                ssh.disconnect();
-            }
-            catch (IOException ex) {
+            } catch ( IOException ex){
                 throw Throwables.propagate(ex);
             }
 
