@@ -1,4 +1,4 @@
-package io.github.hiroyuki_sato.digdag.plugin;
+package com.github.hiroyuki_sato.digdag.plugin;
 
 import io.digdag.spi.OperatorFactory;
 import io.digdag.spi.OperatorProvider;

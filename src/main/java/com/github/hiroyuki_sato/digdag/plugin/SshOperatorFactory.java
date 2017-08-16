@@ -1,4 +1,4 @@
-package io.github.hiroyuki_sato.digdag.plugin;
+package com.github.hiroyuki_sato.digdag.plugin;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
@@ -158,13 +158,18 @@ public class SshOperatorFactory
 
         private void setupKnownKey()
         {
+/*
             try {
+*/
+logger.info("********************************************");
                 ssh.addHostKeyVerifier(new PromiscuousVerifier());
+/*
                 ssh.loadKnownHosts();
             }
             catch (IOException ex) {
                 throw Throwables.propagate(ex);
             }
+*/
         }
     }
 }
