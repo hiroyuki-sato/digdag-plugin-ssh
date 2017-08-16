@@ -75,7 +75,7 @@ public class SshOperatorFactory
             int cmd_timeo = params.get("command_timeout", int.class, defaultCommandTimeout);
 
             try {
-                setupKnownKey();
+                setupHostKeyVerifier();
 
                 logger.info(String.format("Connecting %s:%d", host, port));
                 ssh.connect(host, port);
@@ -156,12 +156,11 @@ public class SshOperatorFactory
             }
         }
 
-        private void setupKnownKey()
+        private void setupHostKeyVerifier()
         {
 /*
             try {
 */
-logger.info("********************************************");
                 ssh.addHostKeyVerifier(new PromiscuousVerifier());
 /*
                 ssh.loadKnownHosts();
