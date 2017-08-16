@@ -49,7 +49,7 @@ digdag secrets --project <project> --set ssh.public_key=@id_rsa.pub
 
 Artifacts are build on local repos: `./build/repo`.
 
-# 2) run an example
+### 2) run an example
 
 ```sh
 digdag selfupdate
