@@ -6,17 +6,20 @@ Digdag `ssh>` operator plugin to execute a remote command via ssh.
 
 ```yaml
 _export:
+  ssh:
+    host: host.add.re.ss
+    user: username
   plugin:
     repositories:
       - https://jitpack.io
     dependencies:
-      - com.github.hiroyuki-sato:digdag-plugin-ssh:0.1.0
+      - com.github.hiroyuki-sato:digdag-plugin-ssh:0.1.3
 
 +step1:
   ssh>: ls
-  host: remote.host.name
+#  host: remote.host.name
 #  port: 22
-  user: hiroysato
+#  user: hiroysato
 ```
 
 Register private and public key into secrets.
