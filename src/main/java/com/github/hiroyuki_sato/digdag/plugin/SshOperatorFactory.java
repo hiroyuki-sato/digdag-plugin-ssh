@@ -45,7 +45,6 @@ public class SshOperatorFactory
         return "ssh";
     }
 
-    final SSHClient ssh = new SSHClient();
 
     @Override
     public Operator newOperator(OperatorContext context)
@@ -73,17 +72,18 @@ public class SshOperatorFactory
             String host = params.get("host", String.class);
             int port = params.get("port", int.class, 22);
             int cmd_timeo = params.get("command_timeout", int.class, defaultCommandTimeout);
+            final SSHClient ssh = new SSHClient();
 
             try {
                 try {
-                    setupHostKeyVerifier();
+                    setupHostKeyVerifier(ssh);
 
                     logger.info(String.format("Connecting %s:%d", host, port));
                     ssh.connect(host, port);
 
                     try {
 
-                        authorize();
+                        authorize(ssh);
                         final Session session = ssh.startSession();
 
                         logger.info(String.format("Execute command: %s", command));
@@ -114,7 +114,7 @@ public class SshOperatorFactory
             return TaskResult.empty(request);
         }
 
-        private void authorize()
+        private void authorize(SSHClient ssh)
         {
             Config params = request.getConfig().mergeDefault(
                     request.getConfig().getNestedOrGetEmpty("ssh"));
@@ -159,7 +159,7 @@ public class SshOperatorFactory
             }
         }
 
-        private void setupHostKeyVerifier()
+        private void setupHostKeyVerifier(SSHClient ssh)
         {
 /*
             try {
