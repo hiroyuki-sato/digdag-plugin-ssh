@@ -9,6 +9,8 @@ _export:
   ssh:
     host: host.add.re.ss
     user: username
+    stdout_log: true # Output stdout log (default true)
+    stderr_log: true # Output stderr log (default false)
   plugin:
     repositories:
       - https://jitpack.io

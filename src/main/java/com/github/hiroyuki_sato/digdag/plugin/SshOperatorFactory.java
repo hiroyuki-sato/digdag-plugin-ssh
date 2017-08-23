@@ -72,6 +72,7 @@ public class SshOperatorFactory
             String host = params.get("host", String.class);
             int port = params.get("port", int.class, 22);
             int cmd_timeo = params.get("command_timeout", int.class, defaultCommandTimeout);
+
             final SSHClient ssh = new SSHClient();
 
             try {
@@ -91,7 +92,19 @@ public class SshOperatorFactory
                         result.join(cmd_timeo, TimeUnit.SECONDS);
 
                         int status = result.getExitStatus();
-                        logger.debug("Result: " + IOUtils.readFully(result.getInputStream()).toString());
+
+                        boolean stdout_log = params.get("stdout_log",boolean.class,true);
+                        if( stdout_log ) {
+                            logger.info("STDOUT output");
+                            outputResultLog(IOUtils.readFully(result.getInputStream()).toString());
+                        }
+
+
+                        boolean stderr_log = params.get("stderr_log",boolean.class,false);
+                        if( stderr_log ){
+                            logger.info("STDERR output");
+                            outputResultLog(IOUtils.readFully(result.getErrorStream()).toString());
+                        }
                         logger.info("Status: " + status);
                         if (status != 0) {
                             throw new RuntimeException(String.format("Command failed with code %d", status));
@@ -172,6 +185,13 @@ public class SshOperatorFactory
                 throw Throwables.propagate(ex);
             }
 */
+        }
+
+        private void outputResultLog(String log)
+        {
+            for(String msg: log.split("\r?\n")){
+                logger.info("  " + msg);
+            }
         }
     }
 }
