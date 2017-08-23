@@ -4,6 +4,8 @@ Digdag `ssh>` operator plugin to execute a remote command via ssh.
 
 ## configuration
 
+[Release list](https://github.com/hiroyuki-sato/digdag-plugin-ssh/releases).
+
 ```yaml
 _export:
   ssh:
@@ -15,7 +17,7 @@ _export:
     repositories:
       - https://jitpack.io
     dependencies:
-      - com.github.hiroyuki-sato:digdag-plugin-ssh:0.1.3
+      - com.github.hiroyuki-sato:digdag-plugin-ssh:0.1.4 # Modify latest version.
 
 +step1:
   ssh>: ls
