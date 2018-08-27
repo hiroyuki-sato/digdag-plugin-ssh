@@ -137,9 +137,9 @@ public class SshOperatorFactory
 
             try {
                 if (params.get("password_auth", Boolean.class, false)) {
-                    Optional<String> password = secret.getSecretOptional("password");
+                    Optional<String> password = secret.getSecretOptional(user + ".password");
                     if (!password.isPresent()) {
-                        throw new RuntimeException("password not set");
+                        throw new RuntimeException(user + ".password not set");
                     }
                     logger.info(String.format("Authenticate user %s with password", user));
                     ssh.authPassword(user, password.get());
