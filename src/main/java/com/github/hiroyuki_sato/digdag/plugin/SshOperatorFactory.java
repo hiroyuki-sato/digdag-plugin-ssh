@@ -133,7 +133,7 @@ public class SshOperatorFactory
                     request.getConfig().getNestedOrGetEmpty("ssh"));
 
             String user = params.get("user", String.class);
-            SecretProvider secrets = context.getSecrets().getSecrets("ssh");;
+            SecretProvider secrets = context.getSecrets().getSecrets("ssh");
 
             try {
                 if (params.get("password_auth", Boolean.class, false)) {
