@@ -76,8 +76,8 @@ _export:
   user: alice
   # `ssh.password` value used by default.
 
-+step1:
-  ssh>: ls
++step2:
+  ssh>: another_command
   host: remote.host.name2
   port: 22
   user: bob
