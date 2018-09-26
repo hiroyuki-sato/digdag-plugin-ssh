@@ -133,11 +133,11 @@ public class SshOperatorFactory
                     request.getConfig().getNestedOrGetEmpty("ssh"));
 
             String user = params.get("user", String.class);
-            SecretProvider secret = context.getSecrets().getSecrets("ssh");
+            SecretProvider secrets = context.getSecrets().getSecrets("ssh");
 
             try {
                 if (params.get("password_auth", Boolean.class, false)) {
-                    Optional<String> password = secret.getSecretOptional("password");
+                    Optional<String> password = getPassword(secrets, params);
                     if (!password.isPresent()) {
                         throw new RuntimeException("password not set");
                     }
@@ -145,9 +145,9 @@ public class SshOperatorFactory
                     ssh.authPassword(user, password.get());
                 }
                 else {
-                    Optional<String> publicKey = secret.getSecretOptional("public_key");
-                    Optional<String> privateKey = secret.getSecretOptional("private_key");
-                    Optional<String> publicKeyPass = secret.getSecretOptional("public_key_passphrase");
+                    Optional<String> publicKey = secrets.getSecretOptional("public_key");
+                    Optional<String> privateKey = secrets.getSecretOptional("private_key");
+                    Optional<String> publicKeyPass = secrets.getSecretOptional("public_key_passphrase");
                     if (!publicKey.isPresent()) {
                         throw new RuntimeException("public_key not set");
                     }
@@ -169,6 +169,17 @@ public class SshOperatorFactory
             }
             catch (UserAuthException | TransportException ex) {
                 throw Throwables.propagate(ex);
+            }
+        }
+
+        private Optional<String> getPassword(SecretProvider secrets, Config params)
+        {
+            Optional<String> passwordOverrideKey = params.getOptional("password_override", String.class);
+            if (passwordOverrideKey.isPresent()) {
+                return Optional.of(secrets.getSecret(passwordOverrideKey.get()));
+            }
+            else {
+                return secrets.getSecretOptional("password");
             }
         }
 
