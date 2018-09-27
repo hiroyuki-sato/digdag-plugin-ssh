@@ -100,7 +100,7 @@ Artifacts are build on local repos: `./build/repo`.
 ```sh
 digdag selfupdate
 
-rm -rf sample/.digdag/plugin
+rm -rf .digdag/plugin
 digdag run -a --project sample plugin.dig -p repos=`pwd`/build/repo
 ```
 
