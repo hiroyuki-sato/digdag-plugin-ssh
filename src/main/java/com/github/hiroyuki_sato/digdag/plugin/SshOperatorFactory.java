@@ -61,6 +61,8 @@ public class SshOperatorFactory
         }
 
         private final int defaultCommandTimeout = 60;
+        private final int maxRetries = 5;
+        private final int retryDelaySec = 5;
 
         @Override
         public TaskResult runTask()
@@ -72,6 +74,8 @@ public class SshOperatorFactory
             String host = params.get("host", String.class);
             int port = params.get("port", int.class, 22);
             int cmd_timeo = params.get("command_timeout", int.class, defaultCommandTimeout);
+            int max_retries = params.get("max_retries", int.class, maxRetries);
+            int retry_delay_sec = params.get("retry_delay_sec", int.class, retryDelaySec);
 
             final SSHClient ssh = new SSHClient();
 
@@ -80,7 +84,19 @@ public class SshOperatorFactory
                     setupHostKeyVerifier(ssh);
 
                     logger.info(String.format("Connecting %s:%d", host, port));
-                    ssh.connect(host, port);
+                    for (int retryNum = 0; retryNum < max_retries; retryNum++) {
+                        try {
+                            ssh.connect(host, port);
+                            break;
+                        } catch (Exception e) {
+                            try {
+                                logger.info("Connection failed " + (retryNum + 1) + " time, waiting " + retry_delay_sec + " seconds");
+                                TimeUnit.SECONDS.sleep(retry_delay_sec);
+                            } catch (InterruptedException e1) {
+                                e1.printStackTrace();
+                            }
+                        }
+                    }
 
                     try {
 
