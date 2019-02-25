@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 0.1.7 (2019-02-25)
+
+* Update sshj version for hung connection(https://github.com/hierynomus/sshj/issues/466)
+
 ## 0.1.6 (2018-09-28)
 
 * Support `password_override` option. (#5 yuhiwa)

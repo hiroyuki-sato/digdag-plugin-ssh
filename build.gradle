@@ -6,7 +6,7 @@ apply plugin: 'eclipse'
 apply plugin: 'idea'
 
 group = 'com.github.hiroyuki-sato'
-version = '0.1.6'
+version = '0.1.7'
 
 def digdagVersion = '0.9.13'
 
