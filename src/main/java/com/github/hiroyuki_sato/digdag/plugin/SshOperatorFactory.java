@@ -11,6 +11,7 @@ import io.digdag.spi.SecretProvider;
 import io.digdag.spi.TaskResult;
 import io.digdag.spi.TemplateEngine;
 import io.digdag.util.BaseOperator;
+import io.digdag.util.RetryExecutor;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.common.IOUtils;
 import net.schmizz.sshj.connection.ConnectionException;
@@ -26,6 +27,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+
+import static io.digdag.util.RetryExecutor.retryExecutor;
 
 public class SshOperatorFactory
         implements OperatorFactory
@@ -61,6 +64,9 @@ public class SshOperatorFactory
         }
 
         private final int defaultCommandTimeout = 60;
+        private final int initialRetryWait = 500;
+        private final int maxRetryWait = 2000;
+        private final int maxRetryLimit = 3;
 
         @Override
         public TaskResult runTask()
@@ -72,6 +78,9 @@ public class SshOperatorFactory
             String host = params.get("host", String.class);
             int port = params.get("port", int.class, 22);
             int cmd_timeo = params.get("command_timeout", int.class, defaultCommandTimeout);
+            int initial_retry_wait = params.get("initial_retry_wait", int.class, initialRetryWait);
+            int max_retry_wait = params.get("max_retry_wait", int.class, maxRetryWait);
+            int max_retry_limit = params.get("max_retry_limit", int.class, maxRetryLimit);
 
             final SSHClient ssh = new SSHClient();
 
@@ -80,7 +89,27 @@ public class SshOperatorFactory
                     setupHostKeyVerifier(ssh);
 
                     logger.info(String.format("Connecting %s:%d", host, port));
-                    ssh.connect(host, port);
+
+                    RetryExecutor retryExecutor = retryExecutor()
+                            .retryIf(exception -> true)
+                            .withInitialRetryWait(initial_retry_wait)
+                            .withMaxRetryWait(max_retry_wait)
+                            .onRetry((exception, retryCount, retryLimit, retryWait) -> logger.warn("Connection failed: retry {} of {} (wait {}ms)", retryCount, retryLimit, retryWait, exception))
+                            .withRetryLimit(max_retry_limit);
+
+                    try {
+                        retryExecutor.run(() -> {
+                            try {
+                                ssh.connect(host, port);
+                            }
+                            catch (Exception e) {
+                                throw Throwables.propagate(e);
+                            }
+                        });
+                    }
+                    catch (RetryExecutor.RetryGiveupException ex) {
+                        throw Throwables.propagate(ex.getCause());
+                    }
 
                     try {
 
