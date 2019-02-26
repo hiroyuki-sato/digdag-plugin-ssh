@@ -63,10 +63,10 @@ public class SshOperatorFactory
             super(context);
         }
 
-        private final int defaultCommandTimeout = 60;
-        private final int initialRetryWait = 500;
-        private final int maxRetryWait = 2000;
-        private final int maxRetryLimit = 3;
+        private final static int defaultCommandTimeout = 60;
+        private final static int defaultInitialRetryWait = 500;
+        private final static int defaultMaxRetryWait = 2000;
+        private final static int defaultMaxRetryLimit = 3;
 
         @Override
         public TaskResult runTask()
@@ -78,9 +78,9 @@ public class SshOperatorFactory
             String host = params.get("host", String.class);
             int port = params.get("port", int.class, 22);
             int cmd_timeo = params.get("command_timeout", int.class, defaultCommandTimeout);
-            int initial_retry_wait = params.get("initial_retry_wait", int.class, initialRetryWait);
-            int max_retry_wait = params.get("max_retry_wait", int.class, maxRetryWait);
-            int max_retry_limit = params.get("max_retry_limit", int.class, maxRetryLimit);
+            int initial_retry_wait = params.get("initial_retry_wait", int.class, defaultInitialRetryWait);
+            int max_retry_wait = params.get("max_retry_wait", int.class, defaultMaxRetryWait);
+            int max_retry_limit = params.get("max_retry_limit", int.class, defaultMaxRetryLimit);
 
             final SSHClient ssh = new SSHClient();
 
