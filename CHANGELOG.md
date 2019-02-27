@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 0.1.8 (2019-02-27)
+
+* Add ssh connection retry function. (#11 yuhiwa)
+
 ## 0.1.7 (2019-02-25)
 
 * Update sshj version for hung connection(https://github.com/hierynomus/sshj/issues/466)
