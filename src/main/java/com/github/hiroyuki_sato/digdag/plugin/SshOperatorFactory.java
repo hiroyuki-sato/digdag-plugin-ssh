@@ -82,12 +82,10 @@ public class SshOperatorFactory
             int max_retry_wait = params.get("max_retry_wait", int.class, defaultMaxRetryWait);
             int max_retry_limit = params.get("max_retry_limit", int.class, defaultMaxRetryLimit);
 
-            final SSHClient ssh = new SSHClient();
+            SSHClient ssh = null;
 
             try {
                 try {
-                    setupHostKeyVerifier(ssh);
-
                     logger.info(String.format("Connecting %s:%d", host, port));
 
                     RetryExecutor retryExecutor = retryExecutor()
@@ -98,9 +96,13 @@ public class SshOperatorFactory
                             .withRetryLimit(max_retry_limit);
 
                     try {
-                        retryExecutor.run(() -> {
+                        ssh = retryExecutor.run(() -> {
+                            SSHClient sshTmp = null;
                             try {
-                                ssh.connect(host, port);
+                                sshTmp = new SSHClient();
+                                setupHostKeyVerifier(sshTmp);
+                                sshTmp.connect(host, port);
+                                return sshTmp;
                             }
                             catch (Exception e) {
                                 throw Throwables.propagate(e);
