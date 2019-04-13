@@ -97,9 +97,8 @@ public class SshOperatorFactory
 
                     try {
                         ssh = retryExecutor.run(() -> {
-                            SSHClient sshTmp = null;
                             try {
-                                sshTmp = new SSHClient();
+                                SSHClient sshTmp = new SSHClient();
                                 setupHostKeyVerifier(sshTmp);
                                 sshTmp.connect(host, port);
                                 return sshTmp;
