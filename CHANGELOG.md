@@ -1,5 +1,10 @@
 # ChangeLog
 
+## 0.1.9 (2019-04-15)
+
+* Improve retry logic.(#13 kenta4327 )
+
+
 ## 0.1.8 (2019-02-27)
 
 * Add ssh connection retry function. (#11 yuhiwa)
