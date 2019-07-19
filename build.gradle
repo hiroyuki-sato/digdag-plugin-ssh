@@ -26,7 +26,7 @@ dependencies {
     provided 'io.digdag:digdag-spi:' + digdagVersion
     // provided 'io.digdag:digdag-standards:' + digdagVersion
     provided 'io.digdag:digdag-plugin-utils:' + digdagVersion  // this should be 'compile' once digdag 0.8.2 is released to a built-in repository
-    compile 'com.hierynomus:sshj:0.27.0'
+    compile 'com.jcraft:jsch:0.1.55'
 }
 
 sourceSets {
