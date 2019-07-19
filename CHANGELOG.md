@@ -1,5 +1,9 @@
 # ChangeLog
 
+## 0.2.0 (2019-07-19)
+
+* Changed ssh library from sshj to JSch (#15 yuhiwa)
+
 ## 0.1.9 (2019-04-15)
 
 * Improve retry logic.(#13 kenta4327 )
